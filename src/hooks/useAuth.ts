@@ -10,64 +10,49 @@ export function useAuth() {
   });
 
   useEffect(() => {
-    // Check if we're in development mode with placeholder Supabase config
-    const isDevelopmentMode = import.meta.env.VITE_SUPABASE_URL === undefined || 
-                              import.meta.env.VITE_SUPABASE_URL?.includes('placeholder');
+    console.log('Initializing authentication flow');
+
+    const isDevelopmentMode =
+      import.meta.env.VITE_SUPABASE_URL === undefined ||
+      import.meta.env.VITE_SUPABASE_URL?.includes('placeholder') ||
+      import.meta.env.VITE_SUPABASE_URL?.includes('your_supabase_project_url_here');
 
     if (isDevelopmentMode) {
-      // In development mode, create a mock user
-      console.log('Running in development mode with mock user');
-      setTimeout(() => {
-        setAuthState({
-          user: {
-            id: 'dev-user-123',
-            email: 'developer@example.com',
-            name: 'Developer User',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          loading: false,
-          error: null,
-        });
-      }, 1000);
+      console.log('Development mode detected. Supabase not configured.');
+      // Don't auto-create a mock user - let the user manually sign in
+      setAuthState({
+        user: null,
+        loading: false,
+        error: null,
+      });
       return;
     }
 
-    // Set a timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      if (authState.loading) {
-        console.warn('Auth loading timeout, setting loading to false');
-        setAuthState(prev => ({ ...prev, loading: false }));
-      }
-    }, 10000); // 10 second timeout
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      clearTimeout(timeout);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(`Auth state changed: ${event}`, session);
       if (session?.user) {
-        fetchUserProfile(session.user.id);
+        const user = session.user;
+        setAuthState(prev => ({
+          ...prev,
+          loading: false,
+          user: {
+            id: user.id,
+            email: user.email!,
+            name: user.user_metadata?.name || prev.user?.name,
+            avatar_url: user.user_metadata?.avatar_url,
+            created_at: user.created_at,
+            updated_at: user.updated_at || new Date().toISOString(),
+          },
+        }));
+        fetchUserProfile(user.id);
       } else {
         setAuthState({ user: null, loading: false, error: null });
       }
-    }).catch((error) => {
-      clearTimeout(timeout);
-      console.error('Error getting session:', error);
-      setAuthState({ user: null, loading: false, error: null });
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setAuthState({ user: null, loading: false, error: null });
-        }
-      }
-    );
-
     return () => {
-      clearTimeout(timeout);
       subscription.unsubscribe();
     };
   }, []);
@@ -81,45 +66,18 @@ export function useAuth() {
         .single();
 
       if (error) {
-        // If profiles table doesn't exist or profile not found, create basic user object
-        console.warn('Profile not found, using basic user data:', error);
-        const { data: userData } = await supabase.auth.getUser();
-        
-        setAuthState({
-          user: {
-            id: userId,
-            email: userData.user?.email || '',
-            name: userData.user?.user_metadata?.name || 'User',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          loading: false,
-          error: null,
-        });
+        console.warn('Profile not found, using basic user data from auth session.', error.message);
         return;
       }
 
-      setAuthState({
-        user: data,
-        loading: false,
-        error: null,
-      });
+      if (data) {
+        setAuthState(prev => ({
+          ...prev,
+          user: { ...prev.user!, ...data },
+        }));
+      }
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      // Fallback to basic user data even on error
-      const { data: userData } = await supabase.auth.getUser();
-      
-      setAuthState({
-        user: {
-          id: userId,
-          email: userData.user?.email || '',
-          name: userData.user?.user_metadata?.name || 'User',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        loading: false,
-        error: null,
-      });
     }
   };
 
@@ -168,6 +126,31 @@ export function useAuth() {
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
 
+      const isDevelopmentMode =
+        import.meta.env.VITE_SUPABASE_URL === undefined ||
+        import.meta.env.VITE_SUPABASE_URL?.includes('placeholder') ||
+        import.meta.env.VITE_SUPABASE_URL?.includes('your_supabase_project_url_here');
+
+      if (isDevelopmentMode) {
+        console.log('Development mode: Creating mock user for sign in');
+        // Create a mock user for development
+        const mockUser: User = {
+          id: 'dev-user-001',
+          email: email,
+          name: 'Demo User',
+          avatar_url: undefined,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        
+        setAuthState({
+          user: mockUser,
+          loading: false,
+          error: null,
+        });
+        return { success: true, error: null };
+      }
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -185,19 +168,27 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
-      // Check if we're in development mode
-      const isDevelopmentMode = import.meta.env.VITE_SUPABASE_URL === undefined || 
-                                import.meta.env.VITE_SUPABASE_URL?.includes('placeholder');
-      
-      if (isDevelopmentMode) {
-        setAuthState({ user: null, loading: false, error: null });
-        return;
-      }
+        setAuthState(prev => ({ ...prev, loading: true }));
 
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error signing out:', error);
+        const isDevelopmentMode =
+            import.meta.env.VITE_SUPABASE_URL === undefined ||
+            import.meta.env.VITE_SUPABASE_URL?.includes('placeholder') ||
+            import.meta.env.VITE_SUPABASE_URL?.includes('your_supabase_project_url_here');
+
+        if (isDevelopmentMode) {
+            console.log('Development mode: Clearing mock user state');
+            setAuthState({ user: null, loading: false, error: null });
+            return;
+        }
+
+        const { error } = await supabase.auth.signOut();
+
+        if (error) throw error;
+
+        setAuthState({ user: null, loading: false, error: null });
+    } catch (error: any) {
+        console.error('Error during sign out:', error);
+        setAuthState(prev => ({ ...prev, loading: false, error: error.message || 'Failed to sign out' }));
     }
   };
 

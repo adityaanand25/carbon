@@ -1,33 +1,31 @@
-import React, { useState } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronLeft, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { CalendarDay } from '../types';
 
 interface CarbonCalendarProps {
   calendarData: CalendarDay[];
+  dailyGoal?: number;
+  onDateSelect?: (date: string) => void;
 }
 
-export default function CarbonCalendar({ calendarData }: CarbonCalendarProps) {
+export default function CarbonCalendar({ calendarData, dailyGoal = 10, onDateSelect }: CarbonCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
 
-  const getCarbonLevelColor = (level: string) => {
-    switch (level) {
-      case 'low': return 'bg-green-500';
-      case 'medium': return 'bg-yellow-500';
-      case 'high': return 'bg-orange-500';
-      case 'very-high': return 'bg-red-500';
-      default: return 'bg-gray-200';
-    }
+  const getCarbonLevelColor = (emissions: number) => {
+    if (!dailyGoal) return 'bg-gray-200';
+    
+    if (emissions <= dailyGoal * 0.7) return 'bg-green-500 hover:bg-green-600'; // Excellent - Green
+    if (emissions <= dailyGoal) return 'bg-yellow-500 hover:bg-yellow-600'; // Good - Yellow  
+    return 'bg-red-500 hover:bg-red-600'; // Needs Work - Red
   };
 
-  const getCarbonLevelText = (level: string) => {
-    switch (level) {
-      case 'low': return 'Low Impact';
-      case 'medium': return 'Medium Impact';
-      case 'high': return 'High Impact';
-      case 'very-high': return 'Very High Impact';
-      default: return 'No Data';
-    }
+  const getCarbonLevelText = (emissions: number) => {
+    if (!dailyGoal) return 'No Target Set';
+    
+    if (emissions <= dailyGoal * 0.7) return 'Excellent Day!';
+    if (emissions <= dailyGoal) return 'Good Progress';
+    return 'Needs Improvement';
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -75,7 +73,7 @@ export default function CarbonCalendar({ calendarData }: CarbonCalendarProps) {
   const emptyDays = Array.from({ length: firstDay }, (_, i) => i);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="h-[580px] bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/50 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Carbon Calendar</h2>
         <div className="flex items-center space-x-4">
@@ -156,38 +154,49 @@ export default function CarbonCalendar({ calendarData }: CarbonCalendarProps) {
           return (
             <button
               key={day}
-              onClick={() => setSelectedDay(dayData || null)}
-              className={`h-12 rounded-lg text-sm font-medium transition-all hover:scale-105 ${
+              onClick={() => {
+                setSelectedDay(dayData || null);
+                if (dayData && onDateSelect) {
+                  onDateSelect(dayData.date);
+                }
+              }}
+              className={`h-12 rounded-lg text-sm font-medium transition-all hover:scale-105 relative ${
                 isToday ? 'ring-2 ring-blue-500' : ''
               } ${
                 dayData 
-                  ? `${getCarbonLevelColor(dayData.level)} text-white hover:opacity-80`
+                  ? `${getCarbonLevelColor(dayData.emissions || dayData.carbonScore)} text-white hover:opacity-80`
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
+              title={dayData ? `${dayData.emissions || dayData.carbonScore}g CO₂ - ${getCarbonLevelText(dayData.emissions || dayData.carbonScore)}` : 'No data'}
             >
               {day}
+              {dayData && (dayData.activitiesCount || dayData.activities.length) > 0 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs text-white font-bold">{dayData.activitiesCount || dayData.activities.length}</span>
+                </div>
+              )}
             </button>
           );
         })}
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center space-x-4 text-xs">
+      <div className="flex items-center justify-center space-x-4 text-xs mb-4">
         <div className="flex items-center space-x-1">
           <div className="w-3 h-3 bg-green-500 rounded" />
-          <span>Low</span>
+          <span>Excellent (&lt;{(dailyGoal * 0.7).toFixed(1)}g)</span>
         </div>
         <div className="flex items-center space-x-1">
           <div className="w-3 h-3 bg-yellow-500 rounded" />
-          <span>Medium</span>
-        </div>
-        <div className="flex items-center space-x-1">
-          <div className="w-3 h-3 bg-orange-500 rounded" />
-          <span>High</span>
+          <span>Good (&lt;{dailyGoal.toFixed(1)}g)</span>
         </div>
         <div className="flex items-center space-x-1">
           <div className="w-3 h-3 bg-red-500 rounded" />
-          <span>Very High</span>
+          <span>Needs Work</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <div className="w-3 h-3 bg-gray-200 rounded" />
+          <span>No Data</span>
         </div>
       </div>
 
@@ -203,14 +212,14 @@ export default function CarbonCalendar({ calendarData }: CarbonCalendarProps) {
               })}
             </h4>
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded ${getCarbonLevelColor(selectedDay.level)}`} />
-              <span className="text-sm font-medium">{getCarbonLevelText(selectedDay.level)}</span>
+              <div className={`w-3 h-3 rounded ${getCarbonLevelColor(selectedDay.emissions || selectedDay.carbonScore)}`} />
+              <span className="text-sm font-medium">{getCarbonLevelText(selectedDay.emissions || selectedDay.carbonScore)}</span>
             </div>
           </div>
           
           <div className="mb-3">
-            <span className="text-2xl font-bold text-gray-800">{selectedDay.carbonScore.toFixed(1)}</span>
-            <span className="text-sm text-gray-600 ml-1">kg CO₂e</span>
+            <span className="text-2xl font-bold text-gray-800">{(selectedDay.emissions || selectedDay.carbonScore).toFixed(1)}</span>
+            <span className="text-sm text-gray-600 ml-1">g CO₂e</span>
           </div>
           
           {selectedDay.activities.length > 0 && (

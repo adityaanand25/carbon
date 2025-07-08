@@ -3,7 +3,7 @@ import { Leaf, Mail, Lock, User, Eye, EyeOff, ArrowRight, CheckCircle } from 'lu
 import { useAuth } from '../../hooks/useAuth';
 
 export default function AuthPage() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',

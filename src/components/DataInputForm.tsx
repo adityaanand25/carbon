@@ -29,8 +29,14 @@ export default function DataInputForm({ data, onUpdate }: DataInputFormProps) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Track Your Activities</h2>
+    <div className="bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 rounded-3xl shadow-2xl p-8 relative overflow-hidden border border-emerald-100/50 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group cursor-pointer">
+      {/* Gloss overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none group-hover:from-white/40"></div>
+      <div className="absolute top-0 right-0 w-28 h-28 bg-emerald-200/20 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-green-200/15 rounded-full blur-3xl"></div>
+      
+      <div className="relative z-10">
+        <h2 className="text-3xl font-bold bg-gradient-to-r from-emerald-700 to-green-800 bg-clip-text text-transparent mb-8">Track Your Activities</h2>
       
       <div className="flex space-x-1 mb-6 bg-gray-100 rounded-lg p-1">
         {tabs.map((tab) => (
@@ -225,6 +231,7 @@ export default function DataInputForm({ data, onUpdate }: DataInputFormProps) {
             </div>
           </>
         )}
+      </div>
       </div>
     </div>
   );

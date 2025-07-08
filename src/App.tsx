@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Header from './components/Header';
 import CarbonFootprintCard from './components/CarbonFootprintCard';
-import DataInputForm from './components/DataInputForm';
 import RecommendationsCard from './components/RecommendationsCard';
 import ProgressCard from './components/ProgressCard';
 import DailyActivityLogger from './components/DailyActivityLogger';
@@ -15,6 +14,7 @@ import EcoCommunityFeed from './components/EcoCommunityFeed';
 import ThemeCustomizer from './components/ThemeCustomizer';
 import AIAssistant from './components/AIAssistant';
 import RouteComparison from './components/RouteComparison';
+import TransportActivities from './components/TransportActivities';
 import { CarbonData, DailyActivity, Goal, Streak, Achievement, CalendarDay, CommunityPost, Recommendation, RouteOption } from './types';
 import { calculateCarbonFootprint, getCarbonLevel } from './utils/carbonCalculator';
 import { getPersonalizedRecommendations } from './utils/recommendations';
@@ -23,143 +23,41 @@ import { supabase } from './lib/supabase';
 
 const defaultData: CarbonData = {
   transport: {
-    carMiles: 50,
-    publicTransport: 10,
+    carMiles: 0,
+    publicTransport: 0,
     flights: 0,
-    walking: 5,
-    cycling: 2,
+    walking: 0,
+    cycling: 0,
   },
   energy: {
-    electricity: 250,
-    gas: 15,
+    electricity: 0,
+    gas: 0,
     renewable: false,
   },
   food: {
-    meat: 7,
-    dairy: 10,
-    local: 3,
-    processed: 5,
-    plantBased: 3,
+    meat: 0,
+    dairy: 0,
+    local: 0,
+    processed: 0,
+    plantBased: 0,
   },
   lifestyle: {
-    shopping: 100,
-    waste: 3,
-    recycling: 1,
+    shopping: 0,
+    waste: 0,
+    recycling: 0,
   },
 };
 
 // Mock data for new features
-const mockGoals: Goal[] = [
-  {
-    id: '1',
-    title: 'Reduce Car Usage',
-    description: 'Use public transport for 50% of trips',
-    target: 25,
-    current: 18,
-    deadline: '2024-03-01',
-    category: 'transport',
-    icon: 'Car',
-    completed: false,
-  },
-  {
-    id: '2',
-    title: 'Plant-Based Meals',
-    description: 'Have 10 plant-based meals this month',
-    target: 10,
-    current: 7,
-    deadline: '2024-02-29',
-    category: 'food',
-    icon: 'Leaf',
-    completed: false,
-  },
-];
+const mockGoals: Goal[] = [];
 
-const mockStreaks: Streak[] = [
-  {
-    type: 'public-transport',
-    count: 12,
-    lastDate: '2024-01-15',
-    icon: 'Bus',
-    title: 'Public Transport',
-  },
-  {
-    type: 'plant-based',
-    count: 5,
-    lastDate: '2024-01-15',
-    icon: 'Leaf',
-    title: 'Plant-Based Meals',
-  },
-];
+const mockStreaks: Streak[] = [];
 
-const mockAchievements: Achievement[] = [
-  {
-    id: '1',
-    title: 'First Week',
-    description: 'Completed your first week of tracking',
-    icon: 'Calendar',
-    unlocked: true,
-    progress: 100,
-    target: 100,
-    category: 'general',
-    points: 50,
-  },
-  {
-    id: '2',
-    title: 'Eco Warrior',
-    description: 'Reduced footprint below global average',
-    icon: 'Award',
-    unlocked: true,
-    progress: 100,
-    target: 100,
-    category: 'reduction',
-    points: 100,
-  },
-];
+const mockAchievements: Achievement[] = [];
 
-const mockCalendarData: CalendarDay[] = [
-  {
-    date: '2024-01-15',
-    carbonScore: 8.5,
-    level: 'medium',
-    activities: [
-      { id: '1', date: '2024-01-15', type: 'transport', activity: 'Drove to work', impact: 8.2, description: 'Car commute', icon: 'Car' },
-      { id: '2', date: '2024-01-15', type: 'food', activity: 'Plant-based lunch', impact: -1.2, description: 'Sustainable meal', icon: 'Leaf' },
-    ],
-  },
-  {
-    date: '2024-01-14',
-    carbonScore: 4.2,
-    level: 'low',
-    activities: [
-      { id: '3', date: '2024-01-14', type: 'transport', activity: 'Took bus to work', impact: 2.1, description: 'Public transport', icon: 'Bus' },
-      { id: '4', date: '2024-01-14', type: 'energy', activity: 'Used renewable energy', impact: -2.5, description: 'Green energy', icon: 'Zap' },
-    ],
-  },
-];
+const mockCalendarData: CalendarDay[] = [];
 
-const mockCommunityPosts: CommunityPost[] = [
-  {
-    id: '1',
-    user: 'EcoSarah',
-    avatar: '',
-    content: 'Just completed my first week of cycling to work! The morning fresh air is amazing and I\'ve already saved 15kg of CO₂. Who else is joining the bike commute challenge?',
-    achievement: 'Bike Week',
-    carbonSaved: 15.2,
-    likes: 24,
-    comments: 8,
-    timestamp: '2024-01-15T10:30:00Z',
-  },
-  {
-    id: '2',
-    user: 'GreenMike',
-    avatar: '',
-    content: 'Switched to renewable energy this month and my carbon footprint dropped by 30%! The process was easier than I thought. Happy to share tips with anyone interested.',
-    carbonSaved: 45.8,
-    likes: 31,
-    comments: 12,
-    timestamp: '2024-01-14T15:45:00Z',
-  },
-];
+const mockCommunityPosts: CommunityPost[] = [];
 
 function AppContent() {
   const { user } = useAuth();
@@ -229,27 +127,6 @@ function AppContent() {
     } catch (error) {
       console.error('Error loading user data:', error);
     }
-  };
-
-  const saveCarbonData = async (data: CarbonData) => {
-    if (!user) return;
-
-    try {
-      await supabase
-        .from('carbon_data')
-        .upsert({
-          user_id: user.id,
-          data,
-          updated_at: new Date().toISOString(),
-        });
-    } catch (error) {
-      console.error('Error saving carbon data:', error);
-    }
-  };
-
-  const handleUpdateCarbonData = (data: CarbonData) => {
-    setCarbonData(data);
-    saveCarbonData(data);
   };
 
   const handleAddActivity = async (activity: DailyActivity) => {
@@ -349,7 +226,6 @@ function AppContent() {
                 weeklyTrend={weeklyTrend}
               />
               <CarbonFootprintCard footprint={footprint} />
-              <DataInputForm data={carbonData} onUpdate={handleUpdateCarbonData} />
             </div>
             <div className="space-y-8">
               <ProgressCard 
@@ -366,12 +242,7 @@ function AppContent() {
         );
       
       case 'activities':
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <DailyActivityLogger onAddActivity={handleAddActivity} />
-            <CarbonCalendar calendarData={mockCalendarData} />
-          </div>
-        );
+        return <TransportActivities />;
       
       case 'suggestions':
         return (
@@ -416,17 +287,18 @@ function AppContent() {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       theme === 'dark' ? 'bg-gray-900' : 
-      theme === 'nature' ? 'bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50' :
+      theme === 'nature' ? 'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50' :
       theme === 'ocean' ? 'bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50' :
-      'bg-gradient-to-br from-green-50 via-blue-50 to-emerald-50'
+      'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50'
     } ${colorBlindMode ? 'filter contrast-125' : ''}`}>
-      <Header level={level} yearlyFootprint={footprint.yearly} />
+      <Header />
       
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Navigation - Enhanced */}
+      <nav className="bg-white/70 backdrop-blur-lg shadow-lg border-b border-emerald-100/50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-white/30 via-transparent to-white/20 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex items-center justify-between h-16">
-            <div className="flex space-x-8">
+            <div className="flex space-x-2">
               {[
                 { id: 'dashboard', label: 'Dashboard' },
                 { id: 'activities', label: 'Activities' },
@@ -438,25 +310,30 @@ function AppContent() {
                 <button
                   key={item.id}
                   onClick={() => setCurrentView(item.id)}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 relative overflow-hidden ${
                     currentView === item.id
-                      ? 'bg-green-100 text-green-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg border border-emerald-300/50'
+                      : 'text-gray-700 hover:text-emerald-700 hover:bg-emerald-50/70 border border-transparent hover:border-emerald-200/50 hover:shadow-md'
                   }`}
                 >
-                  {item.label}
+                  {currentView === item.id && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/10 pointer-events-none rounded-xl"></div>
+                  )}
+                  <span className="relative z-10">{item.label}</span>
                 </button>
               ))}
             </div>
             
-            <ThemeCustomizer
-              currentTheme={theme}
-              onThemeChange={setTheme}
-              language={language}
-              onLanguageChange={setLanguage}
-              colorBlindMode={colorBlindMode}
-              onColorBlindModeToggle={() => setColorBlindMode(!colorBlindMode)}
-            />
+            <div className="bg-white/50 backdrop-blur-sm rounded-2xl p-2 border border-white/30 shadow-lg">
+              <ThemeCustomizer
+                currentTheme={theme}
+                onThemeChange={setTheme}
+                language={language}
+                onLanguageChange={setLanguage}
+                colorBlindMode={colorBlindMode}
+                onColorBlindModeToggle={() => setColorBlindMode(!colorBlindMode)}
+              />
+            </div>
           </div>
         </div>
       </nav>

@@ -103,8 +103,11 @@ export interface Streak {
 export interface CalendarDay {
   date: string;
   carbonScore: number;
+  emissions: number;
   level: 'low' | 'medium' | 'high' | 'very-high';
   activities: DailyActivity[];
+  transport?: string[];
+  activitiesCount?: number;
 }
 
 export interface RouteOption {

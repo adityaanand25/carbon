@@ -26,10 +26,41 @@ export default function DailyActivityLogger({ onAddActivity }: DailyActivityLogg
 
   const quickActivities = {
     transport: [
-      { name: 'Drove to work', impact: 8.2, icon: 'Car' },
-      { name: 'Took public transport', impact: 2.1, icon: 'Bus' },
-      { name: 'Cycled to work', impact: 0, icon: 'Bike' },
-      { name: 'Walked to store', impact: 0, icon: 'MapPin' },
+      // 🚶 Non-Motorized Travel
+      { name: 'Walking', impact: 0, icon: 'MapPin', category: '🚶 Non-Motorized Travel' },
+      { name: 'Bicycle', impact: 0, icon: 'Bike', category: '🚶 Non-Motorized Travel' },
+      { name: 'Skateboard', impact: 0, icon: 'MapPin', category: '🚶 Non-Motorized Travel' },
+      { name: 'Rollerblades', impact: 0, icon: 'MapPin', category: '🚶 Non-Motorized Travel' },
+      
+      // 🛴 Light Electric Personal Transport
+      { name: 'E-Scooter', impact: 0.2, icon: 'MapPin', category: '🛴 Light Electric Personal Transport' },
+      { name: 'E-Bike', impact: 0.3, icon: 'Bike', category: '🛴 Light Electric Personal Transport' },
+      { name: 'Hoverboard', impact: 0.5, icon: 'MapPin', category: '🛴 Light Electric Personal Transport' },
+      { name: 'Segway', impact: 0.4, icon: 'MapPin', category: '🛴 Light Electric Personal Transport' },
+      
+      // 🚍 Public Transport
+      { name: 'City Bus', impact: 1.8, icon: 'Bus', category: '🚍 Public Transport' },
+      { name: 'Metro/Subway', impact: 1.2, icon: 'MapPin', category: '🚍 Public Transport' },
+      { name: 'Tram/Light Rail', impact: 1.5, icon: 'MapPin', category: '🚍 Public Transport' },
+      { name: 'Local Train', impact: 1.0, icon: 'MapPin', category: '🚍 Public Transport' },
+      { name: 'Ferry/Water Taxi', impact: 2.5, icon: 'MapPin', category: '🚍 Public Transport' },
+      
+      // 🚕 Shared & On-Demand Mobility
+      { name: 'Auto-Rickshaw', impact: 3.2, icon: 'Car', category: '🚕 Shared & On-Demand Mobility' },
+      { name: 'Cycle-Rickshaw', impact: 0.5, icon: 'Bike', category: '🚕 Shared & On-Demand Mobility' },
+      { name: 'Taxi (Petrol/Diesel)', impact: 6.5, icon: 'Car', category: '🚕 Shared & On-Demand Mobility' },
+      { name: 'Electric Taxi', impact: 2.8, icon: 'Car', category: '🚕 Shared & On-Demand Mobility' },
+      { name: 'Ola/Uber/Rapido', impact: 5.8, icon: 'Car', category: '🚕 Shared & On-Demand Mobility' },
+      { name: 'Carpool (Private/Shared)', impact: 4.2, icon: 'Car', category: '🚕 Shared & On-Demand Mobility' },
+      { name: 'Bike Taxi', impact: 2.1, icon: 'Bike', category: '🚕 Shared & On-Demand Mobility' },
+      
+      // 🚗 Personal Vehicle
+      { name: 'Petrol Car', impact: 8.5, icon: 'Car', category: '🚗 Personal Vehicle' },
+      { name: 'Diesel Car', impact: 7.8, icon: 'Car', category: '🚗 Personal Vehicle' },
+      { name: 'CNG Car', impact: 6.2, icon: 'Car', category: '🚗 Personal Vehicle' },
+      { name: 'Electric Car', impact: 3.5, icon: 'Car', category: '🚗 Personal Vehicle' },
+      { name: 'Motorcycle/Scooter (Petrol)', impact: 4.5, icon: 'Bike', category: '🚗 Personal Vehicle' },
+      { name: 'Electric Scooter/Bike', impact: 1.8, icon: 'Bike', category: '🚗 Personal Vehicle' },
     ],
     energy: [
       { name: 'Used AC all day', impact: 12.5, icon: 'Wind' },
@@ -193,22 +224,61 @@ export default function DailyActivityLogger({ onAddActivity }: DailyActivityLogg
             </div>
 
             {/* Quick Activities */}
-            <div className="space-y-2 mb-4">
-              {quickActivities[selectedCategory].map((activity, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleQuickAdd(activity)}
-                  className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <span className="text-sm font-medium text-gray-800">{activity.name}</span>
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-sm font-bold ${activity.impact > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                      {activity.impact > 0 ? '+' : ''}{activity.impact} kg CO₂
-                    </span>
+            {selectedCategory === 'transport' ? (
+              <div className="space-y-4 mb-4 max-h-60 overflow-y-auto">
+                {Object.entries(
+                  quickActivities[selectedCategory].reduce((acc, activity) => {
+                    const category = activity.category || 'Other';
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(activity);
+                    return acc;
+                  }, {} as Record<string, any[]>)
+                ).map(([categoryName, activities]) => (
+                  <div key={categoryName} className="border-b border-gray-100 pb-3">
+                    <h4 className="text-sm font-semibold text-gray-700 mb-2 sticky top-0 bg-white">
+                      {categoryName}
+                    </h4>
+                    <div className="space-y-1">
+                      {activities.map((activity, index) => (
+                        <button
+                          key={`${categoryName}-${index}`}
+                          onClick={() => handleQuickAdd(activity)}
+                          className="w-full flex items-center justify-between p-2 bg-gray-50 hover:bg-green-50 rounded-lg transition-colors text-left"
+                        >
+                          <span className="text-sm font-medium text-gray-800">{activity.name}</span>
+                          <div className="flex items-center space-x-2">
+                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${
+                              activity.impact === 0 ? 'bg-green-100 text-green-700' :
+                              activity.impact < 3 ? 'bg-yellow-100 text-yellow-700' : 
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {activity.impact === 0 ? 'Eco' : `${activity.impact} kg CO₂`}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </button>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-2 mb-4">
+                {quickActivities[selectedCategory].map((activity, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleQuickAdd(activity)}
+                    className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <span className="text-sm font-medium text-gray-800">{activity.name}</span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`text-sm font-bold ${activity.impact > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {activity.impact > 0 ? '+' : ''}{activity.impact} kg CO₂
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
 
             <button
               onClick={() => setIsOpen(false)}
