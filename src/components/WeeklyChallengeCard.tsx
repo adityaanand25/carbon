@@ -275,7 +275,6 @@ export default function WeeklyChallengeCard({
                 key={badgeId}
                 className={`w-8 h-8 bg-gradient-to-br ${getBadgeRarityColor(badge.rarity)} rounded-full flex items-center justify-center shadow-lg ${showAnimation ? 'animate-bounce' : ''} cursor-pointer hover:scale-110 transition-transform`}
                 title={`${badge.name}: ${badge.description} (+${badge.points} pts)`}
-                onClick={() => setShowBadgeModal(badgeId)}
               >
                 <span className="text-sm">{badge.icon}</span>
               </div>
@@ -489,7 +488,6 @@ export default function WeeklyChallengeCard({
                     ? `border-opacity-100 bg-gradient-to-br ${getBadgeRarityColor(badge.rarity)} bg-opacity-10 shadow-lg transform` 
                     : 'border-gray-200 bg-gray-50 opacity-60 hover:opacity-80'
                 }`}
-                onClick={() => setShowBadgeModal(badge.id)}
               >
                 <div className="flex items-center space-x-2">
                   <span className={`text-lg ${isEarned ? 'animate-pulse' : 'grayscale'}`}>

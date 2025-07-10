@@ -1,4 +1,3 @@
-import React from 'react';
 import { Leaf, LogOut, User, ChevronDown } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -48,8 +47,13 @@ export default function Header() {
                   onClick={async () => {
                     try {
                       console.log('Logout button clicked');
-                      await signOut();
-                      console.log('Logout completed');
+                      const result = await signOut();
+                      console.log('Logout result:', result);
+                      if (result?.success) {
+                        console.log('Logout completed successfully');
+                      } else {
+                        console.error('Logout failed:', result?.error);
+                      }
                     } catch (error) {
                       console.error('Logout error:', error);
                     }

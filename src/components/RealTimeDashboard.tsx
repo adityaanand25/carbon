@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
 import { TrendingUp, TrendingDown, Activity, Target, Zap, TreePine } from 'lucide-react';
 import { CarbonFootprint } from '../types';
-import WeeklyChallengeCard from './WeeklyChallengeCard';
 import CarbonAnalytics from './CarbonAnalytics';
-import CarbonCalendar from './CarbonCalendar';
 
 interface RealTimeDashboardProps {
   footprint: CarbonFootprint;
@@ -150,10 +148,10 @@ export default function RealTimeDashboard({ footprint, todayActivities, weeklyTr
         </div>
       </div>
 
-      {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
-        {/* Original Real-Time Score - Takes 1 column */}
-        <div className="xl:col-span-1">
+      {/* Main Dashboard Grid - All cards stacked vertically */}
+      <div className="space-y-6">
+        {/* Real-Time Score Card */}
+        <div className="w-full">
           <div className="h-[580px] bg-gradient-to-br from-cyan-50 via-teal-50 to-blue-50 rounded-2xl shadow-xl p-5 relative overflow-hidden border border-cyan-100/50 hover:shadow-2xl transition-all duration-300 group cursor-pointer">
             {/* Gloss overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/30 via-transparent to-transparent pointer-events-none group-hover:from-white/40"></div>
@@ -241,23 +239,8 @@ export default function RealTimeDashboard({ footprint, todayActivities, weeklyTr
           </div>
         </div>
 
-        {/* Weekly Challenge - Takes 1 column */}
-        <div className="xl:col-span-1">
-          <WeeklyChallengeCard
-            weeklyGoal={dashboardData.weeklyGoal}
-            currentWeekEmissions={dashboardData.currentWeekEmissions}
-            previousWeekEmissions={dashboardData.previousWeekEmissions}
-            dailyEmissions={dashboardData.dailyEmissions}
-            streak={dashboardData.streak}
-            userLevel={dashboardData.userLevel}
-            totalPoints={dashboardData.totalPoints}
-            weeklyRank={dashboardData.weeklyRank}
-            challengeMultiplier={dashboardData.challengeMultiplier}
-          />
-        </div>
-
-        {/* Analytics - Takes 1 column */}
-        <div className="xl:col-span-1">
+        {/* Analytics Dashboard Card */}
+        <div className="w-full">
           <CarbonAnalytics
             weeklyData={dashboardData.weeklyData}
             dailyData={dashboardData.dailyEmissions.map(day => ({
@@ -268,21 +251,9 @@ export default function RealTimeDashboard({ footprint, todayActivities, weeklyTr
             monthlyComparison={dashboardData.monthlyComparison}
           />
         </div>
-      </div>
 
-      {/* Additional Dashboard Section - Carbon Calendar */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Carbon Calendar */}
-        <div className="lg:col-span-1">
-          <CarbonCalendar
-            calendarData={dashboardData.calendarData}
-            dailyGoal={dashboardData.weeklyGoal / 7}
-            onDateSelect={(date) => console.log('Selected date:', date)}
-          />
-        </div>
-
-        {/* Additional Stats Card */}
-        <div className="lg:col-span-1">
+        {/* Environmental Impact Card */}
+        <div className="w-full">
           <div className="h-[580px] bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/50 overflow-y-auto">
             <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
               <TreePine className="w-5 h-5 mr-2 text-green-600" />

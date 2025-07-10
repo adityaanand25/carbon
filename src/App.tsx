@@ -8,7 +8,7 @@ import DailyActivityLogger from './components/DailyActivityLogger';
 import RealTimeDashboard from './components/RealTimeDashboard';
 import EcoSuggestionsPanel from './components/EcoSuggestionsPanel';
 import GoalsStreakTracker from './components/GoalsStreakTracker';
-import CarbonCalendar from './components/CarbonCalendar';
+import WeeklyChallengeCard from './components/WeeklyChallengeCard';
 import GlobalImpactSimulation from './components/GlobalImpactSimulation';
 import EcoCommunityFeed from './components/EcoCommunityFeed';
 import ThemeCustomizer from './components/ThemeCustomizer';
@@ -55,7 +55,18 @@ const mockStreaks: Streak[] = [];
 
 const mockAchievements: Achievement[] = [];
 
-const mockCalendarData: CalendarDay[] = [];
+const mockCalendarData: CalendarDay[] = [
+  // Generate mock calendar data for current month
+  ...Array.from({ length: 30 }, (_, i) => ({
+    date: `2025-07-${String(i + 1).padStart(2, '0')}`,
+    carbonScore: 8.5 * (0.7 + Math.random() * 0.6),
+    emissions: 8.5 * (0.7 + Math.random() * 0.6),
+    level: Math.random() > 0.5 ? 'low' : Math.random() > 0.7 ? 'medium' : 'high' as 'low' | 'medium' | 'high' | 'very-high',
+    activities: [],
+    activitiesCount: Math.floor(Math.random() * 5) + 1,
+    transport: [['Car', 'Walking', 'Public Transport', 'E-Scooter'][Math.floor(Math.random() * 4)]]
+  }))
+];
 
 const mockCommunityPosts: CommunityPost[] = [];
 
@@ -246,23 +257,50 @@ function AppContent() {
       
       case 'suggestions':
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <EcoSuggestionsPanel 
-              recommendations={recommendations}
-              onCompleteRecommendation={handleCompleteRecommendation}
-            />
-            <RecommendationsCard recommendations={recommendations} />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <EcoSuggestionsPanel 
+                recommendations={recommendations}
+                onCompleteRecommendation={handleCompleteRecommendation}
+                calendarData={mockCalendarData}
+                dailyGoal={footprint.daily}
+              />
+            </div>
+            <div className="lg:col-span-1 space-y-8">
+              <RecommendationsCard recommendations={recommendations} />
+            </div>
           </div>
         );
       
       case 'goals':
         return (
-          <GoalsStreakTracker 
-            goals={goals}
-            streaks={mockStreaks}
-            achievements={mockAchievements}
-            onAddGoal={handleAddGoal}
-          />
+          <div className="space-y-8">
+            <GoalsStreakTracker 
+              goals={goals}
+              streaks={mockStreaks}
+              achievements={mockAchievements}
+              onAddGoal={handleAddGoal}
+            />
+            <WeeklyChallengeCard
+              weeklyGoal={150}
+              currentWeekEmissions={120}
+              previousWeekEmissions={180}
+              dailyEmissions={[
+                { date: '2024-01-08', emissions: 45 },
+                { date: '2024-01-09', emissions: 32 },
+                { date: '2024-01-10', emissions: 28 },
+                { date: '2024-01-11', emissions: 15 },
+                { date: '2024-01-12', emissions: 0 },
+                { date: '2024-01-13', emissions: 0 },
+                { date: '2024-01-14', emissions: 0 },
+              ]}
+              streak={7}
+              userLevel={12}
+              totalPoints={2450}
+              weeklyRank={23}
+              challengeMultiplier={1.5}
+            />
+          </div>
         );
       
       case 'routes':

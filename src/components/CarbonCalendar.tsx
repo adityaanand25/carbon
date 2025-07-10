@@ -73,7 +73,7 @@ export default function CarbonCalendar({ calendarData, dailyGoal = 10, onDateSel
   const emptyDays = Array.from({ length: firstDay }, (_, i) => i);
 
   return (
-    <div className="h-[580px] bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/50 overflow-y-auto">
+    <div className="h-full bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/50 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Carbon Calendar</h2>
         <div className="flex items-center space-x-4">

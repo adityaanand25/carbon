@@ -103,5 +103,68 @@ export function getPersonalizedRecommendations(data: CarbonData): Recommendation
     });
   }
 
+  // Add some default recommendations if the list is empty or short
+  if (recommendations.length < 3) {
+    const defaultRecommendations: Recommendation[] = [
+      {
+        id: 'use-reusable-bags',
+        category: 'lifestyle',
+        title: 'Use Reusable Shopping Bags',
+        description: 'Bring your own bags when shopping to reduce plastic waste',
+        impact: 5,
+        difficulty: 'easy',
+        icon: 'ShoppingBag',
+        completed: false
+      },
+      {
+        id: 'optimize-heating',
+        category: 'energy',
+        title: 'Optimize Home Heating',
+        description: 'Lower your thermostat by 1-2 degrees to save energy',
+        impact: 10,
+        difficulty: 'easy',
+        icon: 'Thermometer',
+        completed: false
+      },
+      {
+        id: 'use-stairs',
+        category: 'lifestyle',
+        title: 'Take the Stairs',
+        description: 'Use stairs instead of elevators for light exercise and energy savings',
+        impact: 3,
+        difficulty: 'easy',
+        icon: 'ArrowUp',
+        completed: false
+      },
+      {
+        id: 'digital-receipts',
+        category: 'lifestyle',
+        title: 'Go Digital with Receipts',
+        description: 'Choose email receipts over paper to reduce paper waste',
+        impact: 4,
+        difficulty: 'easy',
+        icon: 'Mail',
+        completed: false
+      },
+      {
+        id: 'unplug-devices',
+        category: 'energy',
+        title: 'Unplug Unused Devices',
+        description: 'Unplug electronics when not in use to eliminate phantom power draw',
+        impact: 7,
+        difficulty: 'easy',
+        icon: 'Unplug',
+        completed: false
+      }
+    ];
+
+    // Add defaults that aren't already in the list
+    defaultRecommendations.forEach(defaultRec => {
+      if (!recommendations.find(rec => rec.id === defaultRec.id)) {
+        recommendations.push(defaultRec);
+      }
+    });
+  }
+
   return recommendations.slice(0, 6); // Return top 6 recommendations
 }

@@ -1,4 +1,4 @@
-import { TrendingDown, BarChart3, PieChart, Calendar, TreePine, TrendingUp } from 'lucide-react';
+import { TrendingDown, BarChart3, Calendar, TreePine, TrendingUp } from 'lucide-react';
 
 interface CarbonAnalyticsProps {
   weeklyData: { week: string; emissions: number; goal: number }[];

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Target, Flame, Award, Plus, Calendar, TrendingUp } from 'lucide-react';
+import { useState } from 'react';
+import { Target, Flame, Award, Plus, Calendar } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { Goal, Streak, Achievement } from '../types';
 
@@ -42,7 +42,7 @@ export default function GoalsStreakTracker({ goals, streaks, achievements, onAdd
   const unlockedAchievements = achievements.filter(achievement => achievement.unlocked);
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6">
+    <div className="h-[580px] bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl p-4 border border-white/50 overflow-y-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Goals & Streaks</h2>
         <button

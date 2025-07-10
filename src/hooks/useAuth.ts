@@ -168,6 +168,7 @@ export function useAuth() {
 
   const signOut = async () => {
     try {
+        console.log('Starting sign out process...');
         setAuthState(prev => ({ ...prev, loading: true }));
 
         const isDevelopmentMode =
@@ -178,17 +179,26 @@ export function useAuth() {
         if (isDevelopmentMode) {
             console.log('Development mode: Clearing mock user state');
             setAuthState({ user: null, loading: false, error: null });
-            return;
+            // Force a page reload to ensure clean state
+            window.location.reload();
+            return { success: true, error: null };
         }
 
         const { error } = await supabase.auth.signOut();
 
         if (error) throw error;
 
+        console.log('Supabase sign out successful, clearing auth state...');
         setAuthState({ user: null, loading: false, error: null });
+        
+        // Force a page reload to ensure clean state
+        window.location.reload();
+        
+        return { success: true, error: null };
     } catch (error: any) {
         console.error('Error during sign out:', error);
         setAuthState(prev => ({ ...prev, loading: false, error: error.message || 'Failed to sign out' }));
+        return { success: false, error: error.message || 'Failed to sign out' };
     }
   };
 
